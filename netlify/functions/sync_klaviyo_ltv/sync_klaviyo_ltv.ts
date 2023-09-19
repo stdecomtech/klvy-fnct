@@ -61,6 +61,7 @@ exports.handler = async function (event, context) {
       {
         headers: {
           Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+          revision: "2023-09-15",
         },
       }
     );
@@ -87,6 +88,7 @@ exports.handler = async function (event, context) {
           method: "POST",
           headers: {
             "content-type": "application/json",
+            revision: "2023-09-15",
             Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
           },
           body: JSON.stringify({
@@ -117,10 +119,10 @@ exports.handler = async function (event, context) {
         headers: CORS_HEADERS,
         body: JSON.stringify({
           message: "Unexpected response from Klaviyo when creating profile.",
-          data : {
+          data: {
             newProfileData,
-            createProfileResponse
-          }
+            createProfileResponse,
+          },
         }),
       };
     }
@@ -142,6 +144,7 @@ exports.handler = async function (event, context) {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
+        revision: "2023-09-15",
         Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
       },
       body: JSON.stringify({
