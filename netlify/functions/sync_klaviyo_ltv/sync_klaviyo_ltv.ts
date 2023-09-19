@@ -79,8 +79,9 @@ exports.handler = async function (event, context) {
   } else {
     // Create a new profile if it doesn't exist
     let newProfileData;
+    let createProfileResponse;
     try {
-      const createProfileResponse = await fetch(
+      createProfileResponse = await fetch(
         `https://a.klaviyo.com/api/profiles/`,
         {
           method: "POST",
@@ -116,6 +117,10 @@ exports.handler = async function (event, context) {
         headers: CORS_HEADERS,
         body: JSON.stringify({
           message: "Unexpected response from Klaviyo when creating profile.",
+          data : {
+            newProfileData,
+            createProfileResponse
+          }
         }),
       };
     }
