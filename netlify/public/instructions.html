@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Ecom - Nouveau Client </title>
+    <!-- Importing the latest version of Tailwind CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .magic_copy {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-10">
+    <h1>Instructions pour synchroniser la ltv d'un nouveau client</h1>
+    <div class="mb-4">
+        1. Dans le compte <a href="https://www.klaviyo.com/"><strong>Klaviyo</strong></a> du client, créer une clé api
+        privée <a class="font-bold underline" href="https://www.loom.com/share/7e6fe12f00bd46b79da0092fb83b7909"
+            target="_blank">(voir
+            comment)</a>
+        <ul>
+            <li> Puis coller la clé ici : <input id="klaviyo_private_key" type="text" placeholder="Coller la clé ici"
+                    class="border p-2 rounded"></li>
+        </ul>
+
+    </div>
+
+    <div class="mb-4">
+        2. Donner un nom unique au client (pour le script en dessous)
+        <input type="text" id="shopName" placeholder="MARQUE_DU_CLIENT" class="border p-2 rounded">
+    </div>
+
+    <div class="mb-4">
+        3. Créer un pixel dans le shopify du client <a class="underline font-bold"
+            href="https://www.loom.com/share/d45224d847eb4a11bbc812c123055304" target="_blank">(voir comment)</a> et
+        coller ce script
+        dedans:
+        <pre id="scriptSnippet"
+            class="magic_copy bg-gray-200 p-4 rounded">Fournir les informations pour générer le script</pre>
+    </div>
+
+    <div class="mb-4">
+        4. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/configuration/env">Netlify</a></strong>,
+        créer une variable d'environnement <span class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md"
+            id="envVariable">KLAVIYO_KEY_[NOM_DU_SHOP]</span> avec la valeur <span
+            class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md" id="apiKeyValue"></span>, <a
+            class="underline font-bold" href="https://www.loom.com/share/adaaf9775d4c4a3d97d52d41139720ec"
+            target="_blank">(voir
+            comment)</a>
+    </div>
+
+    <div class="mb-4">
+        5. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/deploys">Netlify</a></strong> Relancer un
+        build de l'API <a href="https://www.loom.com/share/adaaf9775d4c4a3d97d52d41139720ec" target="_blank">voir
+            comment</a>
+    </div>
+
+
+
+    <div class="mb-4">
+        6. Tester en cliquant ici <button onclick="testRequest()" class="bg-blue-500 text-white p-2 rounded">Envoyer une
+            requête de test</button>
+        <span class="message ml-2 text-green-500"></span>
+    </div>
+
+    <div class="mb-4">
+        7. Aller sur le compte klaviyo du client, chercher le compte test@standard-ecom.com.
+        la ltv devrait être de 100. Si vous recliquez, elle devrait être de 200, etc...
+    </div>
+
+
+
+    <script>
+        const script = `
+        const shopName = "[SHOP_NAME]";
+
+        async function standardEcomTracking(data) {
+        const url =
+            "https://standard-ecom.netlify.app/.netlify/functions/sync_klaviyo_ltv";
+        try {
+            const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+            throw new Error("API request failed");
+            }
+        } catch (error) {
+            console.error(error);
+        }
+        }
+
+        analytics.subscribe("checkout_completed", (event) => {
+        const email = event.data.checkout.email;
+        if (!email) {
+            return; // no email, no tracking :(
+        }
+        const orderTotalPrice = event.data.checkout.totalPrice.amount;
+
+        const data = {
+            event_type: "checkout_completed",
+            event_data: {
+            email,
+            orderTotalPrice,
+            shopName,
+            },
+        };
+
+        standardEcomTracking(data);
+        });
+
+        `
+
+        async function testRequest() {
+            console.log("oui")
+            const message = document.querySelector('.message');
+
+            // Show the loader
+            message.innerText = "🔄 requête en cours"
+
+            const shopName = removeAccents(document.getElementById('shopName').value.toUpperCase().replaceAll(' ', '_'));
+            const url = "https://standard-ecom.netlify.app/.netlify/functions/sync_klaviyo_ltv";
+
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    event_data: {
+                        email: "test@standard-ecom.com",
+                        shopName,
+                        orderTotalPrice: 100
+                    }
+                })
+            })
+
+            const data = await response.json();
+            if (!response.ok) {
+                if (data.message) {
+                    message.innerText = `Erreur : ${data.message}`
+                }
+                throw new Error("API request failed");
+            }
+            message.innerText = 'Requête envoyée !'
+
+        }
+
+        function removeAccents(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function updatePlaceholders() {
+            const shopName = removeAccents(document.getElementById('shopName').value.toUpperCase().replaceAll(' ', '_'));
+            const privateKey = document.getElementById('klaviyo_private_key').value;
+
+            // set variables
+            const scriptSnippet = document.getElementById('scriptSnippet');
+            scriptSnippet.textContent = script.replaceAll('[SHOP_NAME]', shopName);
+            const envVariable = document.getElementById('envVariable');
+            envVariable.textContent = `KLAVIYO_KEY_${shopName}`;
+
+            const apiKeyValue = document.getElementById('apiKeyValue');
+            apiKeyValue.textContent = privateKey;
+        }
+
+
+
+        // Add event listeners on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePlaceholders);
+            });
+        });
+
+
+
+        function addCopyListeners() {
+            const magicCopyElements = document.querySelectorAll('.magic_copy');
+
+            magicCopyElements.forEach(element => {
+                element.addEventListener('click', function () {
+
+                    // Copying the text to clipboard
+                    const textToCopy = element.textContent || element.innerText;
+                    const textArea = document.createElement('textarea');
+                    textArea.value = removeAccents(textToCopy);
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('Copy');
+                    textArea.remove();
+
+                    // Showing the 'copié !' message
+                    const message = document.createElement('span');
+                    message.textContent = 'Copié !';
+                    message.classList.add('hidden', 'ml-2', 'text-green-500', 'p-2', 'translate-y-4', "rounded-md", 'bg-gray-800', 'absolute', 'top-5', 'left-5'); // Using Tailwind classes
+                    element.insertAdjacentElement('afterend', message);
+                    message.classList.remove('hidden');
+
+                    // Hide the message after a short time
+                    setTimeout(() => {
+                        message.classList.add('hidden');
+                    }, 2000);
+                });
+            });
+        }
+
+        // Call the function to add the event listeners
+        addCopyListeners();
+    </script>
+</body>
+
+</html>

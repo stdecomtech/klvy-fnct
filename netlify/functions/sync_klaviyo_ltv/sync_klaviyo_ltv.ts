@@ -34,7 +34,7 @@ exports.handler = async function (event, context) {
     return {
       statusCode: 400,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ message: "Missing or invalid data in payload." }),
+      body: JSON.stringify({ message: "Vérifiez que vous avez bien entré toutes les données partout !" }),
     };
   }
 
@@ -46,7 +46,7 @@ exports.handler = async function (event, context) {
       statusCode: 400,
       headers: CORS_HEADERS,
       body: JSON.stringify({
-        message: `Missing environment variable ${ENV_VARIABLE_NAME}`,
+        message: `La variable d'environnement ${ENV_VARIABLE_NAME} n'a pas été créée dans netlify ;) `,
       }),
     };
   }

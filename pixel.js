@@ -15,7 +15,6 @@ async function standardEcomTracking(data) {
     if (!response.ok) {
       throw new Error("API request failed");
     }
-    const data = await response.json();
   } catch (error) {
     console.error(error);
   }
