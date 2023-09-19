@@ -15,7 +15,7 @@
 </head>
 
 <body class="bg-gray-100 p-10">
-    <h1>Instructions pour synchroniser la ltv d'un nouveau client</h1>
+    <h1 class="text-xl mb-5">Instructions pour synchroniser la LTV d'un nouveau client</h1>
     <div class="mb-4">
         1. Dans le compte <a href="https://www.klaviyo.com/"><strong>Klaviyo</strong></a> du client, créer une clé api
         privée <a class="font-bold underline" href="https://www.loom.com/share/7e6fe12f00bd46b79da0092fb83b7909"
@@ -34,7 +34,7 @@
     </div>
 
     <div class="mb-4">
-        3. Créer un pixel dans le shopify du client <a class="underline font-bold"
+        3. Créer un pixel dans le <strong>Shopify</strong> du client <a class="underline font-bold"
             href="https://www.loom.com/share/d45224d847eb4a11bbc812c123055304" target="_blank">(voir comment)</a> et
         coller ce script
         dedans:
@@ -67,7 +67,7 @@
     </div>
 
     <div class="mb-4">
-        7. Aller sur le compte klaviyo du client, chercher le compte test@standard-ecom.com.
+        7. Aller sur le compte  <a href="https://www.klaviyo.com/"><strong>Klaviyo</strong></a> du client, chercher le compte test@standard-ecom.com.
         la ltv devrait être de 100. Si vous recliquez, elle devrait être de 200, etc...
     </div>
 
@@ -202,7 +202,7 @@
                     // Showing the 'copié !' message
                     const message = document.createElement('span');
                     message.textContent = 'Copié !';
-                    message.classList.add('hidden', 'ml-2', 'text-green-500', 'p-2', 'translate-y-4', "rounded-md", 'bg-gray-800', 'absolute', 'top-5', 'left-5'); // Using Tailwind classes
+                    message.classList.add('hidden', 'ml-2', 'text-green-500', 'p-2', 'translate-y-4', "rounded-md", 'bg-gray-800', 'fixed', 'top-5', 'left-5'); // Using Tailwind classes
                     element.insertAdjacentElement('afterend', message);
                     message.classList.remove('hidden');
 
