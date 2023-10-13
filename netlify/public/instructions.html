@@ -46,7 +46,16 @@
     </div>
 
     <div class="mb-4">
-        4. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/configuration/env">Netlify</a></strong>,
+        4. Créer une <strong> app custom dans le Shopify</strong> du client <a class="underline font-bold"
+            href="https://www.loom.com/share/99ed285b59324c388403de0f63cb4e1e" target="_blank">(voir comment)</a> .
+        <ul>
+            <li> Puis coller la clé ici : <input id="shopify_private_key" type="text" placeholder="Coller la clé ici"
+                    class="border p-2 rounded"></li>
+        </ul>
+    </div>
+
+    <div class="mb-4">
+        5. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/configuration/env">Netlify</a></strong>,
         créer une variable d'environnement <span class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md"
             id="envVariable">KLAVIYO_KEY_[NOM_DU_SHOP]</span> avec la valeur <span
             class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md" id="apiKeyValue"></span>, <a
@@ -56,7 +65,17 @@
     </div>
 
     <div class="mb-4">
-        5. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/deploys">Netlify</a></strong> Relancer un
+        5. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/configuration/env">Netlify</a></strong>,
+        créer une variable d'environnement <span class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md"
+            id="envVariableShopify">SHOPIFY_KEY_[NOM_DU_SHOP]</span> avec la valeur <span
+            class="magic_copy bg-gray-300 text-red-500 p-2 rounded-md" id="apiKeyValueShopify"></span>, <a
+            class="underline font-bold" href="https://www.loom.com/share/adaaf9775d4c4a3d97d52d41139720ec"
+            target="_blank">(voir
+            comment)</a>
+    </div>
+
+    <div class="mb-4">
+        6. Dans <strong><a href="https://app.netlify.com/sites/standard-ecom/deploys">Netlify</a></strong> Relancer un
         build de l'API <a class="underline font-bold" href="https://www.loom.com/share/806cba8daae946df9395afe6eae22367" target="_blank">(voir
             comment)</a>
     </div>
@@ -64,14 +83,46 @@
 
 
     <div class="mb-4">
-        6. Tester en cliquant ici <button onclick="testRequest()" class="bg-blue-500 text-white p-2 rounded">Envoyer une
-            requête de test</button>
+        7. Tester: 
+
+        <ul>
+            <li>
+                remplir les infos du client suivantes : 
+                <ul>
+                    
+                    <li>
+                        <label>url du client, sans le slash final (exemple : https://www.jimmyfairly.com)</label><input id="clientURL" type="text" />
+                    </li>
+
+                    <li>
+                        <label>ID d'un client Shopify</label> <a class="underline font-bold" href="https://www.loom.com/share/73af3a973f804fb38e8fa65571730708" target="_blank">(voir
+                            comment le récupérer)</a> <input id="customerId" type="text" />
+                    </li>
+
+                    <li>
+                        <label>Email du client Shopify</label> <a class="underline font-bold" href="https://www.loom.com/share/73af3a973f804fb38e8fa65571730708" target="_blank">(voir
+                            comment le récupérer)</a> <input id="customerEmail" type="text" />
+                    </li>
+
+                </ul>
+            </li>
+            <li>
+                
+            </li>
+            <li>
+                
+            </li>
+            <li>
+                cliquer ici : <button onclick="testRequest()" class="bg-blue-500 text-white p-2 rounded">Envoyer une
+                   requête de test</button>
+            </li>
+        </ul>   
         <span class="message ml-2 text-green-500"></span>
     </div>
 
     <div class="mb-4">
-        7. Aller sur le compte  <a href="https://www.klaviyo.com/"><strong>Klaviyo</strong></a> du client, chercher le compte test@standard-ecom.com.
-        la ltv devrait être de 100. Si vous recliquez, elle devrait être de 200, etc...
+        8. Aller sur le compte <a href="https://www.klaviyo.com/"><strong>Klaviyo</strong></a> du client, chercher le compte du client testé
+        la ltv devrait être bonne
     </div>
 
 
@@ -106,13 +157,18 @@
             return; // no email, no tracking :(
         }
         const orderTotalPrice = event.data.checkout.totalPrice.amount;
-
+        const shopURL = event.context.document.location.origin
+        const customerId = event.clientId
+        const orderId = event.data.checkout.order.id
         const data = {
             event_type: "checkout_completed",
             event_data: {
             email,
             orderTotalPrice,
             shopName,
+            shopURL,
+            customerId,
+            orderId
             },
         };
 
@@ -122,7 +178,6 @@
         `
 
         async function testRequest() {
-            console.log("oui")
             const message = document.querySelector('.message');
 
             // Show the loader
@@ -139,9 +194,12 @@
                 },
                 body: JSON.stringify({
                     event_data: {
-                        email: "test@standard-ecom.com",
-                        shopName,
-                        orderTotalPrice: 100
+                    email: document.querySelector("#customerEmail").value,
+                    customerId: document.querySelector("#customerId").value,
+                    orderTotalPrice: 0,
+                    shopName,
+                    shopURL: document.querySelector("#clientURL").value,
+                    orderId: 99999999999999
                     }
                 })
             })
@@ -164,6 +222,7 @@
         function updatePlaceholders() {
             const shopName = removeAccents(document.getElementById('shopName').value.toUpperCase().replaceAll(' ', '_'));
             const privateKey = document.getElementById('klaviyo_private_key').value;
+            const privateKeyShopify = document.getElementById('shopify_private_key').value;
 
             // set variables
             const scriptSnippet = document.getElementById('scriptSnippet');
@@ -171,8 +230,14 @@
             const envVariable = document.getElementById('envVariable');
             envVariable.textContent = `KLAVIYO_KEY_${shopName}`;
 
+            const envVariableShopify = document.getElementById('envVariableShopify');
+            envVariableShopify.textContent = `SHOPIFY_KEY_${shopName}`;
+
             const apiKeyValue = document.getElementById('apiKeyValue');
             apiKeyValue.textContent = privateKey;
+
+            const apiKeyValueShopify = document.getElementById('apiKeyValueShopify');
+            apiKeyValueShopify.textContent = privateKeyShopify;
         }
 
 
